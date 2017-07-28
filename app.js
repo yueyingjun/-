@@ -1,22 +1,38 @@
-
-var server=require("./server.js");
+var server=require("./abc/server.js");
 var app=server();
 app.start(8888,function(){
-    console.log("启动");
+    console.log("启动1");
 })
 
-app.get("/",function(req,res){
-    /*cookies*/
-    if(req.cookies.name=="lisi1") {
-        res.sendFile("tpl/aa.html");
-    }else{
-        res.sendFile("tpl/login.html");
-    }
+
+
+
+app.get("/abc/:id",function(req,res){
+    res.end(req.id);
 })
-app.get("/abc/:id/list/:id1",function(req,res){
-    res.end("abc1");
+app.get("/abc/aa/:cc",function(req,res){
+    res.end(req.cc);
 })
 app.get("/123",function(req,res){
-    res.end("sdas");
+    /*
+    *  模板引擎
+    * */
+    res.end("123");
+})
+app.get("/list/:id",function(req,res){
+    var arr=["a","b","c"];
+    var data=arr[req.id];
+    res.end(data)
 })
 
+
+/*
+   req.url="/abc/1"
+*
+*{ '/\//': { attr: [], fn: [Function] },
+ '/\/abc\/([^\/]*)/': { attr: [ 'id' ], fn: [Function] },
+ '/\/123/': { attr: [], fn: [Function] },
+ '/\/demo\/([^\/]*)/': { attr: [ 'aa' ], fn: [Function] } }
+*
+*
+* */

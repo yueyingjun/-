@@ -1,13 +1,22 @@
 var http=require("http");
 var fs=require("fs");
 var path=require("path");
+var config=require("./config");
 class route{
    constructor(){
        this.infoArr={};
        this.cookies=[];
    }
    get(url,callback){
-       this.infoArr[url]=callback;
+       var arr=(url.match(/:[^\/]*/g))||[]
+       var attr=arr.map(function(val){
+           return val.substr(1);
+       });
+       var reg=url.replace(/:[^\/]*/g,"([^\/]*)");
+       var regstr="/"+reg.replace(/\//g,"\\/")+"$/";
+       this.infoArr[regstr]={};
+       this.infoArr[regstr].attr=attr;
+       this.infoArr[regstr].fn=callback;
    }
    start(params,callback){
         var that=this;
@@ -24,11 +33,58 @@ class route{
 
    done(req,res){
 
+       var url=(req.url);
+       if(url=="/favicon.ico"){
+           res.end();
+       }else{
+           //处理静态的文件
+            var ext=path.extname(url);
+            if(ext&&config.staticType.indexOf(ext)){
+                var staticUrl=path.resolve("./"+config.staticDir);
 
+                try{
+                    res.setHeader("content-type",config.mimeType[ext]+";charset=utf-8")
+                    res.writeHead(200);
+                    fs.createReadStream(staticUrl).pipe(res);
+                }catch (e){
+                    res.writeHead(404);
+                    res.end();
+                }
+
+            }else{
+              var flag=true;
+              for(var i in this.infoArr){
+
+                  if(eval(i).test(url)){
+                      flag=false;
+                        var arr=eval(i).exec(url);
+                        for(var j=0;j<this.infoArr[i].attr.length;j++){
+                            req[this.infoArr[i].attr[j]]=arr[j+1]
+                        }
+
+                      this.infoArr[i].fn(req,res)
+
+                  }
+              }
+
+              if(flag){
+                  res.setHeader("content-type","text/html;charset=utf-8");
+                  res.end("页面不存在");
+              }
+
+
+
+            }
+
+
+       }
+
+
+
+
+
+       /*静态*/
        var that=this;
-
-
-
        res.sendFile=function(url){
             fs.createReadStream(url).pipe(res);
        }
