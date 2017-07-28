@@ -1,38 +1,37 @@
-var server=require("./abc/server.js");
+var server=require("./abc/server");
+var mysql=require("mysql");
 var app=server();
-app.start(8888,function(){
-    console.log("启动1");
-})
+var connection = mysql.createConnection({
+    host     : 'localhost',
+    user     : 'root',
+    password : 'root',
+    database : 'w1701blog'
+});
 
 
 
 
-app.get("/abc/:id",function(req,res){
-    res.end(req.id);
+app.listen(8888,function(){
+    console.log("start");
 })
-app.get("/abc/aa/:cc",function(req,res){
-    res.end(req.cc);
+
+
+app.get("/stu",function(req,res){
+    connection.query('select * from member', function (error, results, fields) {
+        if (error) throw error;
+
+            res.render("tpl/stu.html",{data:results})
+
+    });
 })
-app.get("/123",function(req,res){
-    /*
-    *  模板引擎
-    * */
-    res.end("123");
-})
+
 app.get("/list/:id",function(req,res){
-    var arr=["a","b","c"];
-    var data=arr[req.id];
-    res.end(data)
+      var id=req.id;
+    connection.query('select * from member where mid='+id, function (error, results, fields) {
+        if (error) throw error;
+
+        res.render("tpl/show.html",{mpass:results[0].mpass})
+
+    });
+
 })
-
-
-/*
-   req.url="/abc/1"
-*
-*{ '/\//': { attr: [], fn: [Function] },
- '/\/abc\/([^\/]*)/': { attr: [ 'id' ], fn: [Function] },
- '/\/123/': { attr: [], fn: [Function] },
- '/\/demo\/([^\/]*)/': { attr: [ 'aa' ], fn: [Function] } }
-*
-*
-* */
